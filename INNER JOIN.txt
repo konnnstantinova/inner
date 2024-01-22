@@ -1,0 +1,49 @@
+1. Показать названия и категории товаров, поставщиками которых являются ООО "Паньки" или ООО «Какие люди»
+
+SELECT Products.ProductName, Products.Category
+FROM Products
+INNER JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID
+WHERE Suppliers.SupplierName IN ('ТОВ "Паньки"', 'ТОВ "Які люди"');
+
+2. Выбрать все товары с указанием их поставщика, имя производителя которых не содержит букв [АКМ], и категория которых не "Крупы"
+
+SELECT Products.*, Suppliers.SupplierName
+FROM Products
+INNER JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID
+WHERE Products.ManufacturerName NOT LIKE '%[АКМ]%' AND Products.Category <> 'Крупи';
+
+3. Показать названия и категории товаров с указанием поставщика и страны производителя. Условие: страна производителя не Украина и не Польша, цена поставки менее 50 гривен, а дата поставки от 10.10.2023 и по сей день
+
+SELECT Products.ProductName, Products.Category, Suppliers.SupplierName, Manufacturers.Country AS ManufacturerCountry
+FROM Products
+INNER JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID
+INNER JOIN Manufacturers ON Products.ManufacturerID = Manufacturers.ManufacturerID
+WHERE Manufacturers.Country NOT IN ('Україна', 'Польща') AND Products.DeliveryPrice < 50 AND Products.DeliveryDate >= '2023-10-10';
+
+4. Показать все кондитерские и безалкогольные товары, которых было продано более 100. Показать информацию о поставщике и производителе
+
+SELECT Products.*, Suppliers.SupplierName, Manufacturers.ManufacturerName
+FROM Products
+INNER JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID
+INNER JOIN Manufacturers ON Products.ManufacturerID = Manufacturers.ManufacturerID
+WHERE (Products.Category = 'Кондитерські' OR Products.Category = 'Безалкогольні') AND Products.QuantitySold > 100;
+
+5. Сделать запрос на выборку информации о поставке товаров в следующем виде: название товара и его поставщика, категории, дата поставки и общую стоимость поставленных товаров. Условие: только трёх указанных в запросе поставщиков. Отсортировать названия товаров в алфавитном порядке
+
+SELECT Products.ProductName, Suppliers.SupplierName, Products.Category, Products.DeliveryDate, SUM(Products.TotalCost) AS TotalCost
+FROM Products
+INNER JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID
+WHERE Suppliers.SupplierName IN ('Постачальник1', 'Постачальник2', 'Постачальник3')
+GROUP BY Products.ProductName, Suppliers.SupplierName, Products.Category, Products.DeliveryDate
+ORDER BY Products.ProductName;
+
+6. Сделать запрос на выборку о продажах товаров в следующем виде: название товара и его производителя, полный адрес (страна, город, улица) производителя в одной ячейке, категории, дате продажи и общей стоимости продажи. Условие: выведенная информация не должна касаться двух указанных в запросе производителей. Отсортировать общую стоимость продаж в порядке убывания
+
+SELECT Products.ProductName, Manufacturers.ManufacturerName, Manufacturers.Country || ', ' || Manufacturers.City || ', ' || Manufacturers.Street AS ManufacturerAddress, 
+       Products.Category, Sales.SaleDate, SUM(Sales.TotalCost) AS TotalSalesCost
+FROM Products
+INNER JOIN Manufacturers ON Products.ManufacturerID = Manufacturers.ManufacturerID
+INNER JOIN Sales ON Products.ProductID = Sales.ProductID
+WHERE Manufacturers.ManufacturerName NOT IN ('Виробник1', 'Виробник2')
+GROUP BY Products.ProductName, Manufacturers.ManufacturerName, ManufacturerAddress, Products.Category, Sales.SaleDate
+ORDER BY TotalSalesCost DESC;
